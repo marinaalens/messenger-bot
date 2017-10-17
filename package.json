@@ -1,0 +1,32 @@
+{
+  "name": "template-bot",
+  "description": "A facebook chatbot",
+  "version": "0.1.1",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "lint": "eslint .",
+    "autofix": "eslint --fix .",
+    "codecov": "npm run test && (codecov || true)"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "dotenv": "^2.0.0",
+    "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
+    "moment": "^2.18.1",
+    "request": "^2.81.0",
+    "watson-developer-cloud": "^2.32.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.0.4",
+    "eslint": "^2.8.0",
+    "istanbul": "^0.4.2",
+    "nodemon": "^1.11.0",
+    "supertest": "^1.2.0"
+  },
+  "engines": {
+    "node": ">= 6.9.x",
+    "npm": "> 5.10.x"
+  }
+}
