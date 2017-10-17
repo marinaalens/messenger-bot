@@ -24,6 +24,20 @@ After this, the message is processed in POST /webhook.
 If the message is a regular text message, the message will be forwarded to watson via the watsonMessage function.
 When Watson responds, the response will be sent back to the user.
 
+### Watson
+When a Watson message is recieved, a new Watson object is created and stored with the User.
+The Watson object holds the latest payload from Watson and the conversation context.
+There is also a helper method, that can find specific entities in the message data.
+
+### Users
+When the user initializes the conversation, the Graph API is called to fetch data from the user.
+A User object is created with the users name, locale and id and stored in userstore.js
+The User will also be updated each time a new Watson message is recieved, in order to store the conversation.
+
+### Graph API
+In addition to getting user data, there is a function for calling the Graph API for other purposes.
+This could be used to get data from a Facebook page. Read more about the Graph API here: https://developers.facebook.com/docs/graph-api/
+
 Please let me know if you have questions.
 
 ## Copyright
