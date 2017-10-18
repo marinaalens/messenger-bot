@@ -186,23 +186,22 @@ function receivedMessage(event) {
 
     if (!user) {
         callUserAPI(senderID, function () {
-            if (messageText) {
-                // view the typing bubble while the message is sent to Watson and processed. Remove it when the message is delivered.
-                viewTypingBubble(senderID);
-                // Send the recieved message to Watson
-                watsonMessage(messageText, senderID);
-            } else if (event.message.sticker_id === 369239263222822) {
-                // Example of a sticker check - this one is for the standard thumbs up sticker
-                watsonMessage('okay', senderID);
-            }
+            sendToWatson(message, senderID);
         });
     } else {
-        if (messageText) {
-            viewTypingBubble(senderID);
-            watsonMessage(messageText, senderID);
-        } else if (event.message.sticker_id === 369239263222822) {
-            watsonMessage('okay', senderID);
-        }
+        sendToWatson(message, senderID);
+    }
+}
+
+function sendToWatson(message, senderID) {
+    if (message.text) {
+        // view the typing bubble while the message is sent to Watson and processed. Remove it when the message is delivered.
+        viewTypingBubble(senderID);
+        // Send the recieved message to Watson
+        watsonMessage(message.text, senderID);
+    } else if (message.sticker_id === 369239263222822) {
+        // Example of a sticker check - this one is for the standard thumbs up sticker
+        watsonMessage('okay', senderID);
     }
 }
 
@@ -216,39 +215,29 @@ function receivedPostback(event) {
 
     if (!user) {
         callUserAPI(senderID, function (user) {
-            switch (payload) {
-                // the start_message payload is from the get started button. You can change this payload in the templates.
-                case 'start_message':
-                    if (user) {
-                        sendTextMessageWithCallback(senderID, 'Hi there, ' + user.getName() + "!", function () {
-                            watsonMessage("Help", senderID);
-                        });
-                    } else {
-                        sendTextMessageWithCallback(senderID, 'Hi there!', function () {
-                            watsonMessage("Help", senderID);
-                        });
-                    }
-                    break;
-                default:
-                    watsonMessage(payload, senderID); break;
-            }
+            processPayload(payload, senderID, user)
         });
     } else {
-        switch (payload) {
-            case 'start_message':
-                if (user) {
-                    sendTextMessageWithCallback(senderID, 'Hi there, ' + user.getName() + "!", function () {
-                        watsonMessage("Help", senderID);
-                    });
-                } else {
-                    sendTextMessageWithCallback(senderID, 'Hi there!', function () {
-                        watsonMessage("Help", senderID);
-                    });
-                }
-                break;
-            default:
-                watsonMessage(payload, senderID); break;
-        }
+        processPayload(payload, senderID, null)
+    }
+}
+
+function processPayload(payload, senderID, user) {
+    switch (payload) {
+        // the start_message payload is from the get started button. You can change this payload in the templates.
+        case 'start_message':
+            if (user) {
+                sendTextMessageWithCallback(senderID, 'Hi there, ' + user.getName() + "!", function () {
+                    watsonMessage("Help", senderID);
+                });
+            } else {
+                sendTextMessageWithCallback(senderID, 'Hi there!', function () {
+                    watsonMessage("Help", senderID);
+                });
+            }
+            break;
+        default:
+            watsonMessage(payload, senderID); break;
     }
 }
 
@@ -370,8 +359,8 @@ function callPagePropAPI(props) {
         if (!error && response.statusCode == 200) {
             console.error("Settings are set!");
         } else {
-            console.error("Unable to send message.");
-            console.error(body.error.message);
+            console.error("Unable to set settings.");
+            console.error(body.error);
         }
     });
 }
@@ -422,8 +411,6 @@ function callGraphApi(callback) {
             let data = JSON.parse(body);
             if (data) {
                 callback(data.data[0]);
-            } else {
-                callback(data);
             }
         } else {
             console.error("Unable to send message.");
@@ -439,10 +426,12 @@ let port = process.env.PORT || process.env.VCAP_APP_PORT || 3000;
 app.listen(port, function() {
     console.log('Server running on port: %d', port);
 
+
     // uncomment these and start server to set settings of the page
 
     /*callPagePropAPI({
      "whitelisted_domains":[]
      });
-    */
+    callPagePropAPI(templates.getGreeting());
+    callPagePropAPI(templates.getStartButton());*/
 });

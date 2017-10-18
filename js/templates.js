@@ -6,6 +6,8 @@ let templates = (function() {
         getPayloadButton: getPayloadButton,
         getQuickReply: getQuickReply,
         getQuickReplyLocation: getQuickReplyLocation,
+        getGreeting: getGreeting,
+        getStartButton: getStartButton
     };
 
     /**
