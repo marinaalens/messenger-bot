@@ -122,18 +122,17 @@ app.post('/webhook', function (req, res) {
 /**
  * Calls the Watson api with the user message and processes the returned Watson message.
  * @param message
- * @param context the conversation context
- * @param senderID
+ * @param user User object
  */
-const watsonMessage = function(message, context, senderID) {
-    let user = userStore.getUser(senderID);
-    let workspace = process.env.WORKSPACE_ID_EN || '<workspace-id>';
+const watsonMessage = function(message, user) {
+    let workspace = process.env.WORKSPACE_ID || '<workspace-id>';
+    const senderID = user.getId();
     const payload = {
         workspace_id: workspace,
         input: {
-            text: text
+            text: message
         },
-        context: context
+        context: user.getWatson() ? user.getWatson().getContext() : {}
     };
     return new Promise(function (resolve, reject) {
         conversation.message(payload, function (err, data) {
