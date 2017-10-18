@@ -185,22 +185,22 @@ function receivedMessage(event) {
 
     if (!user) {
         callUserAPI(senderID, function () {
-            sendToWatson(message, senderID);
+            sendToWatson(message, user);
         });
     } else {
-        sendToWatson(message, senderID);
+        sendToWatson(message, user);
     }
 }
 
-function sendToWatson(message, senderID) {
+function sendToWatson(message, user) {
     if (message.text) {
         // view the typing bubble while the message is sent to Watson and processed. Remove it when the message is delivered.
-        viewTypingBubble(senderID);
+        viewTypingBubble(user.getId());
         // Send the recieved message to Watson
-        watsonMessage(message.text, senderID);
+        watsonMessage(message.text, user);
     } else if (message.sticker_id === 369239263222822) {
         // Example of a sticker check - this one is for the standard thumbs up sticker
-        watsonMessage('okay', senderID);
+        watsonMessage('okay', user);
     }
 }
 
@@ -221,22 +221,23 @@ function receivedPostback(event) {
     }
 }
 
-function processPayload(payload, senderID, user) {
+function processPayload(payload, user) {
+    const senderID = user.getId();
     switch (payload) {
         // the start_message payload is from the get started button. You can change this payload in the templates.
         case 'start_message':
             if (user) {
                 sendTextMessageWithCallback(senderID, 'Hi there, ' + user.getName() + "!", function () {
-                    watsonMessage("Help", senderID);
+                    watsonMessage("Help", user);
                 });
             } else {
                 sendTextMessageWithCallback(senderID, 'Hi there!', function () {
-                    watsonMessage("Help", senderID);
+                    watsonMessage("Help", user);
                 });
             }
             break;
         default:
-            watsonMessage(payload, senderID); break;
+            watsonMessage(payload, user); break;
     }
 }
 
