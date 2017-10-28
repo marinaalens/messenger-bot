@@ -42,4 +42,6 @@ Please let me know if you have questions.
 
 ## Copyright
 
+This template may only be used for personal (non-commercial) use.
+
 All rights reserved, Chatbot Interactive - https://chatbotinteractive.com

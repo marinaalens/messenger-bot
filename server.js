@@ -170,7 +170,6 @@ function receivedMessage(event) {
     let senderID = event.sender.id;
     let pageID = event.recipient.id;
     let message = event.message;
-    let messageText = message.text;
     let messageAttachments = message.attachments;
 
     console.log("User says: " + message.text);
