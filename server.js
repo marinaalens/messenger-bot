@@ -11,6 +11,11 @@ const app = express();
 const exphbs = require('express-handlebars');
 const crypto = require('crypto');
 
+// add any handlebar helper methods
+let hbs = exphbs.create({
+    helpers: {}
+});
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
@@ -19,12 +24,6 @@ app.engine('.hbs', hbs.engine);
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname + '/js/views'));
 app.enable('trust proxy');
-
-
-// add any handlebar helper methods
-let hbs = exphbs.create({
-    helpers: {}
-});
 
 // ------------------- Custom module import --------------------
 
@@ -183,7 +182,7 @@ function receivedMessage(event) {
     let user = userStore.getUser(senderID);
 
     if (!user) {
-        callUserAPI(senderID, function () {
+        callUserAPI(senderID, function (user) {
             sendToWatson(message, user);
         });
     } else {
@@ -213,10 +212,10 @@ function receivedPostback(event) {
 
     if (!user) {
         callUserAPI(senderID, function (user) {
-            processPayload(payload, senderID, user)
+            processPayload(payload, user)
         });
     } else {
-        processPayload(payload, senderID, null)
+        processPayload(payload, user)
     }
 }
 
@@ -305,13 +304,7 @@ function removeTypingBubble(recipientID) {
  * @param callback that should be called when the message is delivered. Ensures message order.
  */
 function sendGenericMessage(genericTemplate, callback) {
-    let messageData = {
-        recipient: {
-            id: recipientId
-        },
-        genericTemplate
-    };
-    callSendAPI(messageData, function (delivered) {
+    callSendAPI(genericTemplate, function (delivered) {
         if (callback) {
             callback(delivered);
         }

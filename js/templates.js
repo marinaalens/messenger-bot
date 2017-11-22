@@ -3,11 +3,14 @@ let templates = (function() {
     return {
         getGenericWithWebView: getGenericWithWebView,
         getGenericList: getGenericList,
-        getPayloadButton: getPayloadButton,
+        getPayloadButtons: getPayloadButtons,
         getQuickReply: getQuickReply,
         getQuickReplyLocation: getQuickReplyLocation,
         getGreeting: getGreeting,
-        getStartButton: getStartButton
+        getStartButton: getStartButton,
+        getButton: getButton,
+        getWebviewButton: getWebviewButton,
+        getQuickReplyButton: getQuickReplyButton
     };
 
     /**
@@ -17,11 +20,15 @@ let templates = (function() {
      * @param url
      * @param imageUrl
      * @param buttonTitle
+     * @param recipientId the id of the user
      * @param height The height of the webview. Either "compact", "tall", or "full"
      * @returns a generic message with a webview
      */
-    function getGenericWithWebView(title, subtitle, url, imageUrl, buttonTitle, height) {
+    function getGenericWithWebView(title, subtitle, url, imageUrl, buttonTitle, height, recipientId) {
         return {
+            "recipient": {
+                "id": recipientId
+            },
             "message":{
                 "attachment":{
                     "type":"template",
@@ -69,11 +76,15 @@ let templates = (function() {
      ]
      * @param url
      * @param buttonTitle
+     * @param recipientId the id of the user
      * @param height The height of the webview. Either "compact", "tall", or "full"
      * @returns payload for the message
      */
-    function getGenericList(elements, url, buttonTitle, height) {
+    function getGenericList(elements, url, buttonTitle, height, recipientId) {
         return {
+            "recipient": {
+                "id": recipientId
+            },
             "message": {
                 "attachment": {
                     "type": "template",
@@ -98,30 +109,57 @@ let templates = (function() {
     }
 
     /**
-     * Returns a button with a title and a payload
-     * @param payload
-     * @param buttonTitle
+     * Returns a message with buttons
+     * @param recipientId the id of the user
      * @param message
+     * @param buttons the buttons - use getButton to create them
      * @returns A button
      */
-    function getPayloadButton(payload, buttonTitle, message) {
+    function getPayloadButtons(buttons, message, recipientId) {
         return {
+            "recipient": {
+                "id": recipientId
+            },
             "message":{
                 "attachment":{
                     "type":"template",
                     "payload":{
                         "template_type":"button",
                         "text": message,
-                        "buttons":[
-                            {
-                                "type":"postback",
-                                "payload": payload,
-                                "title": buttonTitle
-                            }
-                        ]
+                        "buttons": buttons
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Returns a button to be used with getPayloadButtons
+     * @param payload
+     * @param buttonTitle
+     * @returns {{type: string, payload: *, title: *}}
+     */
+    function getButton(payload, buttonTitle) {
+        return {
+            "type":"postback",
+            "payload": payload,
+            "title": buttonTitle
+        }
+    }
+
+    /**
+     * @param url
+     * @param buttonTitle
+     * @param height The height of the webview. Either "compact", "tall", or "full"
+     * @returns {{type: string, title: *, url: *, messenger_extensions: boolean, webview_height_ratio: *}}
+     */
+    function getWebviewButton(buttonTitle, url, height) {
+        return {
+            "type": "web_url",
+            "title": buttonTitle,
+            "url": url,
+            "messenger_extensions": true,
+            "webview_height_ratio": height
         }
     }
 
@@ -135,10 +173,7 @@ let templates = (function() {
             "greeting":[
                 {
                     "locale":"default",
-                    "text":"Hi {{user_first_name}}. Tap 'get started' to begin chatting with me."
-                }, {
-                    "locale":"en_US",
-                    "text":"Hi {{user_first_name}}. Tap 'get started' to begin chatting with me."
+                    "text":"Hej {{user_first_name}}. Tryk 'Kom i gang' for at høre mere om os."
                 }
             ]
         }
@@ -146,33 +181,47 @@ let templates = (function() {
 
     /**
      * Returns a quick reply
-     * @param title
      * @param text
-     * @param payload
+     * @param buttons the quick reply buttons. Generate with getQuickReplyButton
+     * @param recipientId the id of the user
      * @returns a quick reply button payload
      */
-    function getQuickReply(title, text, payload) {
+    function getQuickReply(text, buttons, recipientId) {
         return {
+            "recipient": {
+                "id": recipientId
+            },
             "message":{
                 "text": text,
-                "quick_replies":[
-                    {
-                        "content_type":"text",
-                        "title": title,
-                        "payload": payload
-                    }
-                ]
+                "quick_replies": buttons
             }
+        }
+    }
+
+    /**
+     * @param title
+     * @param payload
+     * @returns {{content_type: string, title: *, payload: *}}
+     */
+    function getQuickReplyButton(title, payload) {
+        return {
+            "content_type":"text",
+            "title": title,
+            "payload": payload
         }
     }
 
     /**
      * Returns a quick reply for getting the user location
      * @param text
+     * @param recipientId the id of the user
      * @returns send location quick reply
      */
-    function getQuickReplyLocation(text) {
+    function getQuickReplyLocation(text, recipientId) {
         return {
+            "recipient": {
+                "id": recipientId
+            },
             "message":{
                 "text": text,
                 "quick_replies":[
