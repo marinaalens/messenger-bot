@@ -146,12 +146,10 @@ const watsonMessage = function(message, user) {
                         // use action variables in watson and process actions here
                     } else if (data.output.text) {
                         // if text is an array of messages, loop over them.
-                        if (data.output.text[0].constructor === Array) {
-                            data.output.text[0].forEach(function (message) {
-                                sendTextMessage(senderID, message);
-                            });
+                        if (message.constructor === Array) {
+                            loopMessages(senderID, message);
                         } else {
-                            sendTextMessage(senderID, data.output.text[0]);
+                            sendTextMessage(senderID, message);
                         }
                     } else {
                         console.log("Watson didn't return a message.")
@@ -161,6 +159,22 @@ const watsonMessage = function(message, user) {
         });
     });
 
+};
+
+// Helper to ensure message order when there are multiple messages
+
+let x = 0;
+let loopMessages = function(recipientId, messages) {
+    sendMessage(recipientId, messages[x],function(){
+        // set x to next item
+        x++;
+
+        if(x < messages.length) {
+            loopMessages(recipientId, messages);
+        } else {
+            x = 0;
+        }
+    });
 };
 
 // Incoming events handling
