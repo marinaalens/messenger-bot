@@ -178,6 +178,14 @@ let loopMessages = function(recipientId, messages) {
     });
 };
 
+function sendMessage(id, message, callback) {
+    sendTextMessageWithCallback(id, message, function (delivered) {
+        if (delivered) {
+            callback()
+        }
+    })
+}
+
 // Incoming events handling
 
 function receivedMessage(event) {
