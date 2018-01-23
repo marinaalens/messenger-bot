@@ -145,6 +145,7 @@ const watsonMessage = function(message, user) {
                     if (data.output.action) {
                         // use action variables in watson and process actions here
                     } else if (data.output.text) {
+                        let message = data.output.text;
                         // if text is an array of messages, loop over them.
                         if (message.constructor === Array) {
                             loopMessages(senderID, message);
