@@ -1,5 +1,5 @@
 let userStore = (function () {
-    let users = new Set();
+    let users = [];
     return {
         getAllUsers: function () {
             return users;
@@ -14,12 +14,12 @@ let userStore = (function () {
      * @returns User
      */
     function getUser(id) {
-        let index = [...users].map(function(x) {return x.id; }).indexOf(id);
+        let index = users.map(function(x) {return x.id; }).indexOf(id);
         return users[index];
     }
 
     function addUser(user) {
-        users.add(user);
+        users.push(user);
     }
 }());
 
