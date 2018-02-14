@@ -97,22 +97,35 @@ app.post('/webhook', function (req, res) {
         // Iterate over each entry - there may be multiple if batched
         data.entry.forEach(function(entry) {
             // Iterate over each messaging event
-            entry.messaging.forEach(function(event) {
-                let senderId = event.sender.id;
-                if (event.message && event.message.text && !event.message.is_echo) {
-                    receivedMessage(event);
-                } else if (event.postback) {
-                    receivedPostback(event);
-                } else if (event.delivery) {
-                    // this is sent each time a message is delivered to the user.
-                    removeTypingBubble(senderId)
-                } else if (event.message.attachments[0].type === 'location') {
-                    let location = {lat: event.message.attachments[0].payload.coordinates.lat, lng: event.message.attachments[0].payload.coordinates.long};
-                    // Do something with the location
-                } else {
-                    console.log("Webhook received unknown event: ", event);
-                }
-            });
+            // Secondary Receiver is in control - listen on standby channel
+            if (entry.standby) {
+                console.log("Bot on standby")
+                // iterate webhook events from standby channel
+                entry.standby.forEach(event => {
+                    const psid = event.sender.id;
+                    const message = event.message;
+                });
+            }
+            if (entry.messaging) {
+                entry.messaging.forEach(function(event) {
+                    let senderId = event.sender.id;
+                    if (event.message && event.message.text && !event.message.is_echo) {
+                        receivedMessage(event);
+                    } else if (event.postback) {
+                        receivedPostback(event);
+                    } else if (event.delivery) {
+                        // this is sent each time a message is delivered to the user.
+                        removeTypingBubble(senderId)
+                    } else if (event.message && event.message.attachments[0].type === 'location') {
+                        let location = {lat: event.message.attachments[0].payload.coordinates.lat, lng: event.message.attachments[0].payload.coordinates.long};
+                        // Do something with the location
+                    } else if (event.pass_thread_control) {
+                        sendTextMessage(senderId, "Hello again! You're back from talking to an employee!");
+                    } else {
+                        console.log("Webhook received unknown event: ", event);
+                    }
+                });
+            }
         });
         res.sendStatus(200);
     }
@@ -140,6 +153,11 @@ const watsonMessage = function(message, user) {
             } else {
                 if (data) {
                     console.log(data);
+                    let buttons = data.output.buttons;
+                    let savedButtonMessage;
+                    if (buttons) {
+                        buttons = getButtonsFromWatson(buttons, true); //always quick reply - change in actions if necessary.
+                    }
                     // Save the latest watson answer to retain context
                     user.setWatson(new Watson(data));
                     if (data.output.action) {
@@ -148,9 +166,20 @@ const watsonMessage = function(message, user) {
                         let message = data.output.text;
                         // if text is an array of messages, loop over them.
                         if (message.constructor === Array) {
-                            loopMessages(senderID, message);
+                            if (buttons) {
+                                savedButtonMessage = message.pop();
+                                loopMessages(senderID, message, function () {
+                                    sendGenericMessage(templates.getQuickReply(savedButtonMessage, buttons, senderID), null);
+                                });
+                            } else {
+                                loopMessages(senderID, message, function(){});
+                            }
                         } else {
-                            sendTextMessage(senderID, message);
+                            if (buttons) {
+                                sendGenericMessage(templates.getQuickReply(message, buttons, senderID), null);
+                            } else {
+                                sendTextMessage(senderID, message);
+                            }
                         }
                     } else {
                         console.log("Watson didn't return a message.")
@@ -162,18 +191,43 @@ const watsonMessage = function(message, user) {
 
 };
 
-// Helper to ensure message order when there are multiple messages
+/**
+ * Provided a button array, the function will create Messenger buttons and return a new array.
+ * @param buttons
+ * @param isQuickReply if true, the array returned will be a quick reply array
+ * @returns {*}
+ */
+function getButtonsFromWatson(buttons, isQuickReply) {
+    if (buttons) {
+        let actionButtons = [];
+        buttons.forEach(function (button) {
+            for (let i in button) {
+                if (button.hasOwnProperty(i)) {
+                    if (isQuickReply) {
+                        actionButtons.push(templates.getQuickReplyButton(i + ' ', button[i]));
+                    } else {
+                        actionButtons.push(templates.getButton(i + ' ', button[i]));
+                    }
+                }
+            }
+        });
+        return actionButtons;
+    } else {
+        return null;
+    }
+}
 
+// Helper to ensure message order when there are multiple messages
 let x = 0;
-let loopMessages = function(recipientId, messages) {
+let loopMessages = function(recipientId, messages, callback) {
     sendMessage(recipientId, messages[x],function(){
         // set x to next item
         x++;
-
         if(x < messages.length) {
-            loopMessages(recipientId, messages);
+            loopMessages(recipientId, messages, callback);
         } else {
             x = 0;
+            callback();
         }
     });
 };
@@ -256,6 +310,14 @@ function processPayload(payload, user) {
                     watsonMessage("Help", user);
                 });
             }
+            break;
+        case 'contact':
+        case 'kontakt':
+            sendTextMessageWithCallback(senderID, "I'm transfering you to an employee. They will answer your message as soon as possible.", function () {
+                passThreadControl(senderID, function () {
+                    console.log("Handover completed")
+                })
+            });
             break;
         default:
             watsonMessage(payload, user); break;
@@ -353,6 +415,37 @@ function callSendAPI(messageData, callback) {
             }
         } else {
             console.error("Unable to send message.");
+            console.error(body.error);
+        }
+    });
+}
+
+/**
+ * Passes thread control to page
+ * @param userId
+ * @param callback
+ */
+function passThreadControl(userId, callback) {
+    console.log('PASSING THREAD CONTROL');
+    let payload = {
+        recipient: {
+            id: userId
+        },
+        target_app_id: 263902037430900
+    };
+    request({
+        uri: 'https://graph.facebook.com/v2.6/me/pass_thread_control',
+        qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+        method: 'POST',
+        json: payload
+
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            if (callback) {
+                callback(true);
+            }
+        } else {
+            console.error("Unable to pass control to app.");
             console.error(body.error);
         }
     });
