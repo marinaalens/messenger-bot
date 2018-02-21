@@ -397,6 +397,31 @@ function sendGenericMessage(genericTemplate, callback) {
 }
 
 /**
+ * Uploads an attachment to facebook
+ * Use with attachment template
+ * @param attachmentPayload
+ * @param callback called if message was sent with success
+ */
+function callUploadAttachmentAPI(attachmentPayload, callback) {
+    request({
+        uri: 'https://graph.facebook.com/v2.6/me/message_attachments',
+        qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+        method: 'POST',
+        json: attachmentPayload
+
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            if (callback) {
+                callback(true);
+            }
+        } else {
+            console.error("Unable to send message.");
+            console.error(body.error);
+        }
+    });
+}
+
+/**
  * Sends the message to facebook
  * @param messageData
  * @param callback called if message was sent with success

@@ -109,6 +109,55 @@ let templates = (function() {
     }
 
     /**
+     * Returns an attachment payload, which can be used to upload attachments to Facebook.
+     * When uploaded, an attachement id will be returned which can then be used to send the attachment to the user (see getAttachmentMessage)
+     * is_reusable is always true, which means the attachment id returned can be reused with other users
+     * @param recipientId
+     * @param type image - video - audio - file
+     * @param url
+     * @returns {{recipient: {id: *}, message: {attachment: {type: *, payload: {is_reusable: boolean, url: string}}}}}
+     */
+    function getAttachment(recipientId, type, url) {
+        return {
+            "recipient": {
+                "id": recipientId
+            },
+            "message": {
+                "attachment":{
+                    "type": type,
+                    "payload":{
+                        "is_reusable": true,
+                        "url": url
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns a payload with an attachment. The attachment id can be acquired by using getAttachment()
+     * @param recipientId
+     * @param type
+     * @param attachmentId
+     * @returns {{recipient: {id: *}, message: {attachment: {type: *, payload: {attachment_id: *}}}}}
+     */
+    function getAttachmentMessage(recipientId, type, attachmentId) {
+        return {
+            "recipient": {
+                "id": recipientId
+            },
+            "message": {
+                "attachment":{
+                    "type": type,
+                    "payload":{
+                        "attachment_id": attachmentId
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Returns a message with buttons
      * @param recipientId the id of the user
      * @param message
