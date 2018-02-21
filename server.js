@@ -28,8 +28,10 @@ app.enable('trust proxy');
 // ------------------- Custom module import --------------------
 
 let userStore = require('./js/data/userstore.js');
+let attachmentStore = require('./js/data/attachmentstore');
 let templates = require('./js/templates.js');
 let User = require('./js/model/User.js');
+let Attachment = require('./js/model/Attachment.js');
 let Watson = require('./js/model/Watson.js');
 
 // --------------------------- Watson --------------------------
@@ -397,6 +399,24 @@ function sendGenericMessage(genericTemplate, callback) {
 }
 
 /**
+ * Return an attachment id. If the attachment is not yet upload, uploads the attachment, saves it and returns id
+ * @param attachmentPayload
+ * @param imageTitle
+ */
+function getAttachmentId(attachmentPayload, imageTitle) {
+    let attachment = attachmentStore.getAttachmentByName(imageTitle);
+    if (!attachment) {
+        callUploadAttachmentAPI(attachmentPayload, function (id) {
+            attachment = new Attachment(id, imageTitle);
+            attachmentStore.addAttachment(attachment);
+            return id;
+        })
+    } else {
+        return attachment.getId();
+    }
+}
+
+/**
  * Uploads an attachment to facebook
  * Use with attachment template
  * @param attachmentPayload
@@ -412,7 +432,7 @@ function callUploadAttachmentAPI(attachmentPayload, callback) {
     }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             if (callback) {
-                callback(true);
+                callback(body.attachment_id);
             }
         } else {
             console.error("Unable to send message.");
