@@ -101,7 +101,7 @@ app.post('/webhook', function (req, res) {
             // Iterate over each messaging event
             // Secondary Receiver is in control - listen on standby channel
             if (entry.standby) {
-                console.log("Bot on standby")
+                console.log("Bot on standby");
                 // iterate webhook events from standby channel
                 entry.standby.forEach(event => {
                     const psid = event.sender.id;
@@ -155,6 +155,7 @@ const watsonMessage = function(message, user) {
             } else {
                 if (data) {
                     console.log(data);
+                    let attachment = data.output.attachment;
                     let buttons = data.output.buttons;
                     let savedButtonMessage;
                     if (buttons) {
@@ -169,10 +170,14 @@ const watsonMessage = function(message, user) {
                         // if text is an array of messages, loop over them.
                         if (message.constructor === Array) {
                             if (buttons) {
-                                savedButtonMessage = message.pop();
-                                loopMessages(senderID, message, function () {
-                                    sendGenericMessage(templates.getQuickReply(savedButtonMessage, buttons, senderID), null);
-                                });
+                                if (message.length > 1) {
+                                    savedButtonMessage = message.pop();
+                                    loopMessages(senderID, message, function () {
+                                        sendGenericMessage(templates.getQuickReply(savedButtonMessage, buttons, senderID), null);
+                                    });
+                                } else {
+                                    sendGenericMessage(templates.getQuickReply(message[0], buttons, senderID), null);
+                                }
                             } else {
                                 loopMessages(senderID, message, function(){});
                             }
@@ -185,6 +190,15 @@ const watsonMessage = function(message, user) {
                         }
                     } else {
                         console.log("Watson didn't return a message.")
+                    }
+                    if (attachment) {
+                        let attachmentPayload = templates.getAttachment(senderID, attachment.type, attachment.url);
+                        let attachmentId = getAttachmentId(attachmentPayload, attachment.title);
+                        if (attachmentId) {
+                            sendGenericMessage(templates.getAttachmentMessage(senderID, attachment.type, attachmentId), function () {
+                                console.log("Image sent!");
+                            });
+                        }
                     }
                 }
             }

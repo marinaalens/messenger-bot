@@ -10,7 +10,9 @@ let templates = (function() {
         getStartButton: getStartButton,
         getButton: getButton,
         getWebviewButton: getWebviewButton,
-        getQuickReplyButton: getQuickReplyButton
+        getQuickReplyButton: getQuickReplyButton,
+        getAttachment: getAttachment,
+        getAttachmentMessage: getAttachmentMessage
     };
 
     /**
@@ -222,7 +224,7 @@ let templates = (function() {
             "greeting":[
                 {
                     "locale":"default",
-                    "text":"Hej {{user_first_name}}. Tryk 'Kom i gang' for at høre mere om os."
+                    "text":'Hi {{user_first_name}}. Press "Get started" to chat!'
                 }
             ]
         }
