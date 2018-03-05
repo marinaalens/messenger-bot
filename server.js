@@ -149,9 +149,10 @@ const watsonMessage = function(message, user) {
                     console.log(data);
                     let attachment = data.output.attachment;
                     let buttons = data.output.buttons;
+                    let buttonType = data.output.buttonType;
                     let savedButtonMessage;
                     if (buttons) {
-                        buttons = getButtonsFromWatson(buttons, true); //always quick reply - change in actions if necessary.
+                        buttons = getButtonsFromWatson(buttons, buttonType === 'integrated' ? false : true); //always quick reply - change in actions if necessary.
                     }
                     // Save the latest watson answer to retain context
                     user.setWatson(new Watson(data));
