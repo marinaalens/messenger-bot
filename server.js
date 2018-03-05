@@ -75,7 +75,7 @@ app.use(abortOnError);
 app.get('/webhook', function(req, res) {
     if (req.query['hub.mode'] === 'subscribe' &&
         req.query['hub.verify_token'] === process.env.VERIFY_TOKEN) {
-        console.log("Validating webhook");
+        console.log("Valid webhook");
         res.status(200).send(req.query['hub.challenge']);
     } else {
         console.error("Failed validation. Make sure the validation tokens match.");
@@ -152,7 +152,7 @@ const watsonMessage = function(message, user) {
                     let buttonType = data.output.buttonType;
                     let savedButtonMessage;
                     if (buttons) {
-                        buttons = getButtonsFromWatson(buttons, buttonType === 'integrated' ? false : true); //always quick reply - change in actions if necessary.
+                        buttons = getButtonsFromWatson(buttons, buttonType === 'integrated' ? false : true);
                     }
                     // Save the latest watson answer to retain context
                     user.setWatson(new Watson(data));
