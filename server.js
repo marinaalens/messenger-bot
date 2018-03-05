@@ -8,21 +8,13 @@ const Conversation = require('watson-developer-cloud/conversation/v1'); // watso
 const request = require('request');
 const path = require('path');
 const app = express();
-const exphbs = require('express-handlebars');
 const crypto = require('crypto');
-
-// add any handlebar helper methods
-let hbs = exphbs.create({
-    helpers: {}
-});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-app.engine('.hbs', hbs.engine);
-app.set('view engine', '.hbs');
-app.set('views', path.join(__dirname + '/js/views'));
+
 app.enable('trust proxy');
 
 // ------------------- Custom module import --------------------

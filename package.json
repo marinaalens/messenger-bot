@@ -13,17 +13,12 @@
     "body-parser": "^1.18.2",
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
-    "watson-developer-cloud": "^3.0.3",
-    "express-handlebars": "^3.0.0",
     "moment": "^2.18.1",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "watson-developer-cloud": "^3.0.3"
   },
   "devDependencies": {
-    "babel-eslint": "^6.0.4",
-    "eslint": "^2.8.0",
-    "istanbul": "^0.4.2",
-    "nodemon": "^1.14.8",
-    "supertest": "^1.2.0"
+    "nodemon": "^1.14.8"
   },
   "engines": {
     "node": ">= 7.5.x",
