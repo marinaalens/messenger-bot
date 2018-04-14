@@ -267,6 +267,10 @@ function receivedMessage(event) {
 
     let user = userStore.getUser(senderID);
 
+    // view the typing bubble while the message is sent to Watson and processed. Remove it when the message is delivered.
+    viewTypingBubble(senderID);
+    markSeen(senderID);
+
     if (!user) {
         callUserAPI(senderID, function (user) {
             sendToWatson(message, user);
@@ -278,8 +282,6 @@ function receivedMessage(event) {
 
 function sendToWatson(message, user) {
     if (message.text) {
-        // view the typing bubble while the message is sent to Watson and processed. Remove it when the message is delivered.
-        viewTypingBubble(user.getId());
         // Send the recieved message to Watson
         watsonMessage(message.text, user);
     } else if (message.sticker_id === 369239263222822) {
@@ -295,6 +297,10 @@ function receivedPostback(event) {
     // The 'payload' param is a developer-defined field which is set in a postback
     let payload = event.postback ? event.postback.payload : event.message.quick_reply.payload;
     let user = userStore.getUser(senderID);
+
+    // view the typing bubble while the message is sent to Watson and processed. Remove it when the message is delivered.
+    viewTypingBubble(senderID);
+    markSeen(senderID);
 
     if (!user) {
         callUserAPI(senderID, function (user) {
@@ -390,6 +396,16 @@ function removeTypingBubble(recipientID) {
         "sender_action":"typing_off"
     };
     callSendAPI(messageData);
+}
+
+function markSeen(recipientID) {
+    let messageData = {
+        recipient: {
+            id: recipientID
+        },
+        "sender_action":"mark_seen"
+    };
+    callSendAPI(messageData, null);
 }
 
 /**
